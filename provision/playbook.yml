@@ -1,44 +1,24 @@
 - hosts: ubuntu-jammy
   become: yes
+  sudo: yes
   tasks:
 
     - name: update
       apt: update_cache=yes   
 
-    - name: install git
-      apt: 
-        name: git
-
-    - name: clone repo
-      ansible.builtin.git:
-        repo: wget https://github.com/gohugoio/hugo/releases/download/v0.79.0/hugo_0.79.0_Linux-64bit.deb
-        dest: /home/vagrant/hugo
-
     - name: install apache2
-      apt: name=apache2 state=latest
-
+      apt: name=apache2 update_cache=yes state=latest
+      
     - name: enabled mod_rewrite
       apache2_module: name=rewrite state=present
-
-    - name: enabled proxy
-      apache2_module: name=proxy state=present
-
-    - name: enabled proxy_http
-      apache2_module: name=proxy_http state=present
+      notify: restart
+        -restart apache2
     
-#    - name: enabled ssl
-#      apache2_module: name=ssl state=present
-    
-#    - name: enabled socache_shmcb
-#      apache2_module: name=socache_shmcb state=present
-
-    - name: enabled mpm_event
-      apache2_module: name=mpm_event state=present
-
-
+    - name: apache2 listen on port 8081
+      lineinfile: dest=/etc/apache2/ports.conf regexp="^Listen 80" line="Listen 8081" state=present
       notify:
         - restart apache2
-
+      
   handlers:
-    - name: restart apache2
-      service: name=apache2 state=restarte
+  - name: restart apache2
+    service: name=apache2 state=restarted
