@@ -1,0 +1,7 @@
+- hosts: ubuntu-jammy
+  become: yes
+  sudo: yes
+  tasks:
+
+    - name: update OS
+      apt: 
